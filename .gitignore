@@ -1,0 +1,37 @@
+﻿# Build output
+bin/
+obj/
+artifacts/
+artifacts2/
+msix-output/
+build_verify/
+release/
+
+# Local .NET CLI state
+.dotnet/
+.dotnethome/
+
+# Codex local backup
+codex-backup-*/
+
+# Generated verification and diagnostic files
+.build-verify-*.xbf
+build_verify*.xbf
+build*.log
+build_*.log
+clean_tmp.log
+host_trace.txt
+compile_editor*.txt
+compile_editor.rsp
+csc_editor*.txt
+test_*_build.log
+test_*_no_codebehind.log
+xamlcompiler_*.txt
+
+# User-specific
+*.csproj.user
+temp-audio-runner/
+compose-preferences.json
+
+# Signing secrets
+msix-output/*.pfx

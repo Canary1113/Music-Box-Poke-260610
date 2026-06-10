@@ -1,0 +1,479 @@
+<Page
+    x:Class="MusicBox.RecognizePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{x:Null}">
+
+    <ScrollViewer x:Name="RootScrollViewer"
+                  VerticalScrollBarVisibility="Auto"
+                  VerticalScrollMode="Enabled"
+                  HorizontalScrollBarVisibility="Disabled"
+                  HorizontalScrollMode="Disabled">
+        <Grid MaxWidth="1500"
+              Width="{Binding ActualWidth, ElementName=RootScrollViewer}"
+              HorizontalAlignment="Stretch"
+              Padding="48,32,48,36"
+              RowSpacing="22">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="8">
+                <TextBlock x:Name="RecognizePageTitleText"
+                           Text="识别中心"
+                           FontSize="30"
+                           FontWeight="SemiBold"
+                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                <TextBlock x:Name="RecognizePageSubtitleText"
+                           Text="将音频或图片转换为五线谱，支持多种格式与高精度识别。"
+                           FontSize="14"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xEC4F;"
+                                      FontSize="22"
+                                      Margin="0,-4,0,0"
+                                      Foreground="{ThemeResource SystemAccentColor}"/>
+                            <TextBlock x:Name="AudioSectionTitleText"
+                                       Text="音频识别 -> 五线谱（MP3/WAV）"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="AudioSectionDescText"
+                                   Text="支持 MP3 / WAV 离线识别：提取主旋律音高并生成草稿音符，可直接导入五线谱页。"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Grid ColumnSpacing="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="48*"/>
+                            <ColumnDefinition Width="1"/>
+                            <ColumnDefinition Width="52*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="14">
+                            <TextBlock x:Name="AudioStepTitleText"
+                                       Text="1. 选择音频与参数"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="SelectAudioButton"
+                                        MinWidth="190"
+                                        Height="36"
+                                        Content="选择音频（MP3/WAV）"
+                                        Click="SelectAudioButton_Click"/>
+                                <Button Grid.Column="1"
+                                        x:Name="ImportDetectedNotesButton"
+                                        Height="36"
+                                        HorizontalAlignment="Stretch"
+                                        Content="导入到五线谱页"
+                                        Click="ImportDetectedNotesButton_Click"
+                                        IsEnabled="False"/>
+                            </Grid>
+
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Spacing="6">
+                                    <TextBlock x:Name="AudioModeLabelText"
+                                               Text="识别模式"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <ComboBox x:Name="AudioRecognitionModeComboBox"
+                                              Height="36"
+                                              HorizontalAlignment="Stretch"
+                                              SelectedIndex="0"
+                                              SelectionChanged="AudioRecognitionModeComboBox_SelectionChanged">
+                                        <ComboBoxItem x:Name="AudioModeMelodyItem" Tag="MelodyFocus" Content="旋律优先"/>
+                                        <ComboBoxItem x:Name="AudioModeBalancedItem" Tag="Balanced" Content="平衡"/>
+                                        <ComboBoxItem x:Name="AudioModeDenseItem" Tag="Dense" Content="高召回/低音保留"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Spacing="6">
+                                    <TextBlock x:Name="FrequencyLabelText"
+                                               Text="频率（Hz）"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <NumberBox Height="36"
+                                               Minimum="1"
+                                               Maximum="20000"
+                                               SmallChange="1"
+                                               LargeChange="10"
+                                               Value="{Binding InputFrequency, Mode=TwoWay}"
+                                               SpinButtonPlacementMode="Inline"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock x:Name="FrequencyResultLabelText"
+                                               Text="换算"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <ComboBox Height="36"
+                                              HorizontalAlignment="Stretch"
+                                              SelectedIndex="0"
+                                              IsHitTestVisible="False">
+                                        <ComboBoxItem>
+                                            <TextBlock Text="{Binding FrequencyResult}"/>
+                                        </ComboBoxItem>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <InfoBar x:Name="AudioModeInfoBar"
+                                     IsOpen="True"
+                                     IsIconVisible="True"
+                                     Severity="Informational"
+                                     Message="适合完整歌曲/有鼓和伴奏。优先保主旋律，减少被低音伴奏拉低八度。"/>
+                            <TextBlock x:Name="AudioModeHelpText"
+                                       Visibility="Collapsed"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock x:Name="AudioSupportText"
+                                       Visibility="Collapsed"
+                                       TextWrapping="Wrap"/>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button x:Name="AnalyzeAudioButton"
+                                        Height="36"
+                                        MinWidth="118"
+                                        Style="{ThemeResource AccentButtonStyle}"
+                                        Content="开始识别"
+                                        Click="AnalyzeAudioButton_Click"/>
+                                <Button x:Name="ClearAudioButton"
+                                        Height="36"
+                                        MinWidth="86"
+                                        Content="清空"
+                                        Click="ClearAudioButton_Click"/>
+                                <ProgressRing x:Name="AudioAnalyzeProgressRing"
+                                              Width="18"
+                                              Height="18"
+                                              IsActive="False"
+                                              Visibility="Collapsed"/>
+                                <TextBlock x:Name="AudioAnalyzeProgressText"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Grid.Column="1"
+                                Background="{ThemeResource CardStrokeColorDefaultBrush}"/>
+
+                        <StackPanel Grid.Column="2" Spacing="14">
+                            <TextBlock x:Name="AudioResultTitleText"
+                                       Text="2. 识别结果"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+
+                            <Border Height="220"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}">
+                                <Grid>
+                                    <TextBox x:Name="DetectedNotesPreviewTextBox"
+                                             IsReadOnly="True"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             Padding="16"/>
+                                    <StackPanel x:Name="AudioEmptyStatePanel"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Spacing="6">
+                                        <FontIcon Glyph="&#xE8A5;"
+                                                  FontSize="40"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock x:Name="SelectedAudioPathText"
+                                                   Text="未选择音频文件"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="RecognizeSummaryText"
+                                                   Text="选择音频并点击“开始识别”以查看结果。"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Spacing="10">
+                                <Button x:Name="ExportAudioMusicXmlButton"
+                                        Height="36"
+                                        Content="导出 MusicXML"
+                                        IsEnabled="False"/>
+                                <Button x:Name="AudioResultImportButton"
+                                        Height="36"
+                                        Content="导入到五线谱页"
+                                        IsEnabled="{Binding IsEnabled, ElementName=ImportDetectedNotesButton}"
+                                        Click="ImportDetectedNotesButton_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon Glyph="&#xEB9F;"
+                                          FontSize="22"
+                                          Foreground="{ThemeResource SystemAccentColor}"/>
+                                <TextBlock x:Name="OmrSectionTitleText"
+                                           Text="图片 / PDF 识别 -> 五线谱（Beta）"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                            </StackPanel>
+                            <TextBlock x:Name="OmrSectionDescText"
+                                       Text="支持 PDF、PNG、JPG、BMP、TIFF。内部通过多引擎 + 多候选评分转换成 MusicXML。"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Border Grid.Column="1"
+                                CornerRadius="4"
+                                Padding="10,4"
+                                Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                                VerticalAlignment="Top">
+                            <TextBlock x:Name="OmrBetaBadgeText"
+                                       Text="Beta 版本"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                        </Border>
+                    </Grid>
+
+                    <Grid ColumnSpacing="24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="34*"/>
+                            <ColumnDefinition Width="42*"/>
+                            <ColumnDefinition Width="32*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="14">
+                            <TextBlock x:Name="OmrSelectTitleText"
+                                       Text="1. 选择图片/PDF"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                            <StackPanel Spacing="8">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="SelectSheetFileButton"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            Content="选择图片/PDF"
+                                            Click="SelectSheetFileButton_Click"/>
+                                    <Button Grid.Column="1"
+                                            x:Name="RunOmrButton"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            Content="开始识别"
+                                            Click="RunOmrButton_Click"/>
+                                </Grid>
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="ImportBestOmrButton"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            Content="导入最优候选"
+                                            Click="ImportBestOmrButton_Click"
+                                            IsEnabled="False"/>
+                                    <Button Grid.Column="1"
+                                            x:Name="ImportSelectedOmrButton"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            Content="导入选中候选"
+                                            Click="ImportSelectedOmrButton_Click"
+                                            IsEnabled="False"/>
+                                    <Button Grid.Column="2"
+                                            x:Name="OpenOmrArtifactsButton"
+                                            Height="36"
+                                            HorizontalAlignment="Stretch"
+                                            Content="查看中间层"
+                                            Click="OpenOmrArtifactsButton_Click"
+                                            IsEnabled="False"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Name="OmrStatusInfoTitleText"
+                                           Text="状态信息"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock x:Name="SelectedSheetPathText" Text="未选择图片/PDF文件" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="SheetRecognizeSummaryText" Text="OMR 结果: -" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="RecognizedMusicXmlPathText" Text="MusicXML: -" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="OmrBestReasonText" Text="最优候选: -" TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ProgressRing x:Name="OmrProgressRing"
+                                              Width="18"
+                                              Height="18"
+                                              IsActive="False"
+                                              Visibility="Collapsed"/>
+                                <TextBlock x:Name="OmrProgressText"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="12">
+                            <TextBlock x:Name="CandidatesTitleText"
+                                       Text="2. 候选列表（按评分排序）"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="220"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid Padding="12,10" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32"/>
+                                            <ColumnDefinition Width="104"/>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="CandidatesEngineHeaderText" Grid.Column="0" Text="#" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="CandidatesInputHeaderText" Grid.Column="1" Text="输入版本" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="CandidatesNotesHeaderText" Grid.Column="2" Text="音符数" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="CandidatesMeasuresHeaderText" Grid.Column="3" Text="小节数" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="CandidatesScoreHeaderText" Grid.Column="4" Text="质量分" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="CandidatesStatusHeaderText" Grid.Column="5" Text="状态" FontWeight="SemiBold"/>
+                                    </Grid>
+
+                                    <ListView x:Name="OmrCandidatesListView"
+                                              Grid.Row="1"
+                                              SelectionMode="Single"
+                                              SelectionChanged="OmrCandidatesListView_SelectionChanged">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ColumnSpacing="8" Padding="12,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="32"/>
+                                                        <ColumnDefinition Width="104"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding RowNumber}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding InputVariant}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding PitchedNotes}"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Measures}"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding QualityScore}"/>
+                                                    <TextBlock Grid.Column="5" Text="{Binding Status}" TextTrimming="CharacterEllipsis"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+
+                                    <StackPanel x:Name="OmrCandidatesEmptyStatePanel"
+                                                Grid.Row="1"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Spacing="6">
+                                        <FontIcon Glyph="&#xE8F1;"
+                                                  FontSize="34"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock x:Name="OmrEmptyCandidatesText"
+                                                   Text="暂无候选结果"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="12">
+                            <TextBlock x:Name="OmrEngineTitleText"
+                                       Text="3. 引擎与环境信息"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="14"
+                                    MinHeight="132"
+                                    Background="{ThemeResource LayerOnAcrylicFillColorDefaultBrush}">
+                                <TextBlock x:Name="OmrRuntimeStatusText"
+                                           Text="运行时状态: -"
+                                           FontFamily="Consolas"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+                            <Button x:Name="RefreshRuntimeStatusButton"
+                                    Height="36"
+                                    MinWidth="112"
+                                    HorizontalAlignment="Left"
+                                    Content="刷新状态"
+                                    Click="RefreshRuntimeStatusButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock x:Name="CandidatesPreviewTitleText"
+                               Visibility="Collapsed"
+                               Text="候选预览（MusicXML）"/>
+                    <TextBox x:Name="OmrPreviewTextBox"
+                             Visibility="Collapsed"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"/>
+                    <Button x:Name="RealtimeNextButton"
+                            Visibility="Collapsed"
+                            Content="开始实时识别（下一阶段）"
+                            IsEnabled="False"/>
+                    <Button x:Name="MicNextButton"
+                            Visibility="Collapsed"
+                            Content="麦克风监听转谱（下一阶段）"
+                            IsEnabled="False"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>

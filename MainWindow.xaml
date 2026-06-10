@@ -1,0 +1,242 @@
+﻿<Window
+    x:Class="MusicBox.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MusicBox"
+    Title="音乐魔盒">
+
+    <Grid x:Name="RootGrid" Background="{x:Null}">
+        <Border x:Name="AppTitleBar"
+                Height="45"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                BorderThickness="0"
+                Canvas.ZIndex="10">
+            <Grid x:Name="AppTitleBarDragRegion">
+                <Grid HorizontalAlignment="Left"
+                      VerticalAlignment="Center"
+                      Margin="12,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center">
+                        <Image x:Name="WindowTitleIcon"
+                               Source="ms-appx:///Assets/logo.png"
+                               Width="16"
+                               Height="16"
+                               Stretch="Uniform"/>
+                        <TextBlock x:Name="WindowTitleText"
+                                   Text="音乐魔盒"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   FontWeight="Normal"/>
+                    </StackPanel>
+
+                    <Border x:Name="TitleBarMenuDivider"
+                            Grid.Column="1"
+                            Width="1"
+                            Height="20"
+                            Margin="12,0,12,0"
+                            Background="{ThemeResource CardStrokeColorDefaultBrush}"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed"/>
+
+                    <MenuBar x:Name="EditorTitleMenuBar"
+                             Grid.Column="2"
+                             VerticalAlignment="Center"
+                             Margin="0"
+                             Visibility="Collapsed">
+                        <MenuBarItem x:Name="EditorFileMenu" Title="文件">
+                            <MenuFlyoutItem Text="新建" Tag="new" Click="EditorTitleFileMenuItem_Click"/>
+                            <MenuFlyoutSeparator/>
+                            <MenuFlyoutItem Text="导入 MusicXML" Tag="import_musicxml" Click="EditorTitleFileMenuItem_Click"/>
+                            <MenuFlyoutItem Text="导出 MusicXML" Tag="export_musicxml" Click="EditorTitleFileMenuItem_Click"/>
+                            <MenuFlyoutSeparator/>
+                            <MenuFlyoutItem Text="导出 WAV" Tag="export_wav" Click="EditorTitleFileMenuItem_Click"/>
+                            <MenuFlyoutItem Text="导出 PDF" Tag="export_pdf" Click="EditorTitleFileMenuItem_Click"/>
+                            <MenuFlyoutItem Text="打印..." Tag="print" Click="EditorTitleFileMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="EditorTimeMenu" Title="拍号">
+                            <RadioMenuFlyoutItem Text="2/4" Tag="2/4" GroupName="TitleTimeSignature" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="3/4" Tag="3/4" GroupName="TitleTimeSignature" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="4/4" Tag="4/4" GroupName="TitleTimeSignature" IsChecked="True" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="6/8" Tag="6/8" GroupName="TitleTimeSignature" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="9/8" Tag="9/8" GroupName="TitleTimeSignature" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="12/8" Tag="12/8" GroupName="TitleTimeSignature" Click="EditorTitleTimeSignatureMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="EditorKeyMenu" Title="调号">
+                            <RadioMenuFlyoutItem Text="C 大调 / a 小调" Tag="0" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="G 大调 / e 小调" Tag="1" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="D 大调 / b 小调" Tag="2" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="A 大调 / 升f 小调" Tag="3" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="E 大调 / 升c 小调" Tag="4" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="B 大调 / 升g 小调" Tag="5" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="升F 大调 / 升d 小调" Tag="6" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="升C 大调 / 升a 小调" Tag="7" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="F 大调 / d 小调" Tag="-1" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降B 大调 / g 小调" Tag="-2" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降E 大调 / c 小调" Tag="-3" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降A 大调 / f 小调" Tag="-4" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降D 大调 / 降b 小调" Tag="-5" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降G 大调 / 降e 小调" Tag="-6" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="降C 大调 / 降a 小调" Tag="-7" GroupName="TitleKeySignature" Click="EditorTitleKeySignatureMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="EditorTempoMenu" Title="速度">
+                            <RadioMenuFlyoutItem Text="Larghissimo 极缓板" Tag="24" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Grave 沉板" Tag="35" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Largo 广板" Tag="50" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Adagio 柔版" Tag="56" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Lento 慢板" Tag="60" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Larghetto 小广板" Tag="63" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Adagietto 小柔板" Tag="66" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Andante 行板" Tag="76" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Andantino 小行板" Tag="84" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Maestoso 庄板" Tag="88" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Moderato 中板" Tag="96" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Allegretto 小快板" Tag="112" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Allegro 快板" Tag="120" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Allegro vivace 快速板" Tag="132" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Vivace 活板" Tag="144" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Presto 急板" Tag="168" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Prestissimo 最急板" Tag="200" GroupName="TitleTempo" Click="EditorTitleTempoMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="EditorSnapMenu" Title="音符吸附">
+                            <RadioMenuFlyoutItem Text="四分音符" Tag="1" GroupName="TitleSnapDivision" Click="EditorTitleSnapMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="八分音符" Tag="2" GroupName="TitleSnapDivision" Click="EditorTitleSnapMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="十六分音符" Tag="4" GroupName="TitleSnapDivision" Click="EditorTitleSnapMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="三十二分音符" Tag="8" GroupName="TitleSnapDivision" Click="EditorTitleSnapMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="EditorDisplayMenu" Title="显示">
+                            <ToggleMenuFlyoutItem Text="网格" IsChecked="True" Click="EditorTitleDisplayToggleMenuItem_Click" Tag="show_grid"/>
+                            <MenuFlyoutSubItem x:Name="EditorMeasurePerLineSubItem" Text="每行小节数">
+                                <ToggleMenuFlyoutItem x:Name="EditorAutoAdjustRatioMenuItem" Text="自动调整比例" IsChecked="False" Click="EditorTitleAutoAdjustMeasureRatioMenuItem_Click" Tag="auto_adjust_ratio"/>
+                                <MenuFlyoutSeparator/>
+                                <RadioMenuFlyoutItem Text="自动（默认）" Tag="auto" GroupName="TitleMeasuresPerSystem" IsChecked="True" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                                <RadioMenuFlyoutItem Text="4" Tag="4" GroupName="TitleMeasuresPerSystem" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                                <RadioMenuFlyoutItem Text="6" Tag="6" GroupName="TitleMeasuresPerSystem" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                                <RadioMenuFlyoutItem Text="8" Tag="8" GroupName="TitleMeasuresPerSystem" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                                <RadioMenuFlyoutItem Text="10" Tag="10" GroupName="TitleMeasuresPerSystem" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                                <RadioMenuFlyoutItem Text="12" Tag="12" GroupName="TitleMeasuresPerSystem" Click="EditorTitleMeasuresPerSystemMenuItem_Click"/>
+                            </MenuFlyoutSubItem>
+                            <MenuFlyoutSeparator/>
+                            <ToggleMenuFlyoutItem Text="区域选择" IsChecked="False" Click="EditorTitleDisplayToggleMenuItem_Click" Tag="area_select" Visibility="Collapsed"/>
+                            <MenuFlyoutItem x:Name="EditorClearMenuItem" Text="清空" Click="EditorTitleClearMenuItem_Click" Tag="clear"/>
+                            <MenuFlyoutSeparator/>
+                            <RadioMenuFlyoutItem Text="Bravura" Tag="Bravura.otf|Bravura" GroupName="TitleMusicFont" Click="EditorTitleMusicFontMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Leland" Tag="Leland.otf|Leland" GroupName="TitleMusicFont" Click="EditorTitleMusicFontMenuItem_Click"/>
+                            <RadioMenuFlyoutItem Text="Sebastian" Tag="Sebastian.otf|Sebastian" GroupName="TitleMusicFont" Click="EditorTitleMusicFontMenuItem_Click"/>
+                        </MenuBarItem>
+                    </MenuBar>
+
+                    <MenuBar x:Name="ConvertTitleMenuBar"
+                             Grid.Column="2"
+                             VerticalAlignment="Center"
+                             Margin="0"
+                             Visibility="Collapsed">
+                        <MenuBarItem x:Name="ConvertImportMenu" Title="导入">
+                            <MenuFlyoutItem x:Name="ConvertImportFromEditorMenuItem" Text="五线谱页导入" Tag="import_editor" Click="ConvertTitleImportMenuItem_Click"/>
+                            <MenuFlyoutItem x:Name="ConvertImportFromFileMenuItem" Text="从文件导入" Tag="import_file" Click="ConvertTitleImportMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="ConvertFormatMenu" Title="格式转换">
+                            <RadioMenuFlyoutItem x:Name="ConvertStaffToJianpuMenuItem" Text="五线谱 → 简谱" Tag="staff_to_jianpu" GroupName="ConvertFormat" IsChecked="True" Click="ConvertTitleFormatMenuItem_Click"/>
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="ConvertExportMenu" Title="导出">
+                            <MenuFlyoutItem x:Name="ConvertPrintMenuItem" Text="打印..." Tag="print" Click="ConvertTitleExportMenuItem_Click"/>
+                            <MenuFlyoutItem x:Name="ConvertExportPdfMenuItem" Text="PDF" Tag="export_pdf" Click="ConvertTitleExportMenuItem_Click"/>
+                            <MenuFlyoutItem x:Name="ConvertExportMusicXmlMenuItem" Text="MusicXML" Tag="export_musicxml" Click="ConvertTitleExportMenuItem_Click"/>
+                        </MenuBarItem>
+                    </MenuBar>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <NavigationView x:Name="MainNavigation"
+                        Margin="0,45,0,0"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsPaneToggleButtonVisible="False"
+                        PaneDisplayMode="Left"
+                        OpenPaneLength="72"
+                        CompactPaneLength="72"
+                        SelectionChanged="MainNavigation_SelectionChanged">
+            <NavigationView.Resources>
+                <Style x:Key="CompactNavItemStyle" TargetType="NavigationViewItem">
+                    <Setter Property="Height" Value="66"/>
+                    <Setter Property="Width" Value="72"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0,3"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                </Style>
+            </NavigationView.Resources>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="NavEditor" Tag="editor" Style="{StaticResource CompactNavItemStyle}">
+                    <Grid Width="56" Height="58" HorizontalAlignment="Center">
+                        <Border Tag="AccentBar" Width="3" Height="22" CornerRadius="2" Background="{ThemeResource SystemControlHighlightAccentBrush}" Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <StackPanel Spacing="3" Width="52" Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE189;" FontFamily="Segoe Fluent Icons" FontSize="18" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <CompositeTransform/>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                            <TextBlock x:Name="NavEditorText" Text="五线谱" Width="52" FontSize="9" FontWeight="Normal" MaxLines="1" TextWrapping="NoWrap" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavConvert" Tag="convert" Style="{StaticResource CompactNavItemStyle}">
+                    <Grid Width="56" Height="58" HorizontalAlignment="Center">
+                        <Border Tag="AccentBar" Width="3" Height="22" CornerRadius="2" Background="{ThemeResource SystemControlHighlightAccentBrush}" Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <StackPanel Spacing="3" Width="52" Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE8B1;" FontFamily="Segoe Fluent Icons" FontSize="18" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <CompositeTransform/>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                            <TextBlock x:Name="NavConvertText" Text="转换" Width="52" FontSize="9" FontWeight="Normal" MaxLines="1" TextWrapping="NoWrap" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavRecognize" Tag="recognize" Style="{StaticResource CompactNavItemStyle}">
+                    <Grid Width="56" Height="58" HorizontalAlignment="Center">
+                        <Border Tag="AccentBar" Width="3" Height="22" CornerRadius="2" Background="{ThemeResource SystemControlHighlightAccentBrush}" Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <StackPanel Spacing="3" Width="52" Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE720;" FontFamily="Segoe Fluent Icons" FontSize="18" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <CompositeTransform/>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                            <TextBlock x:Name="NavRecognizeText" Text="Detect" Width="52" FontSize="9" FontWeight="Normal" MaxLines="1" TextWrapping="NoWrap" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem x:Name="NavSettings" Tag="settings" Style="{StaticResource CompactNavItemStyle}">
+                    <Grid Width="56" Height="58" HorizontalAlignment="Center">
+                        <Border Tag="AccentBar" Width="3" Height="22" CornerRadius="2" Background="{ThemeResource SystemControlHighlightAccentBrush}" Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <StackPanel Spacing="3" Width="52" Margin="4,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="18" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                <FontIcon.RenderTransform>
+                                    <CompositeTransform/>
+                                </FontIcon.RenderTransform>
+                            </FontIcon>
+                            <TextBlock x:Name="NavSettingsText" Text="设置" Width="52" FontSize="9" FontWeight="Normal" MaxLines="1" TextWrapping="NoWrap" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <local:ShellContentHost x:Name="ContentHost"/>
+        </NavigationView>
+    </Grid>
+</Window>
+
+
+
