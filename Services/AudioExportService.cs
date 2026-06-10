@@ -91,9 +91,9 @@ namespace MusicBox.Services
                 double body = 0d;
                 for (int i = 0; i < partialWeights.Length; i++)
                 {
-                    double harmonicChain = Math.Exp(-elapsed * ((1.35d + frequency / 1820d) + i * (2.45d + frequency / 760d)));
+                    double harmonicDecay = Math.Exp(-elapsed * ((1.35d + frequency / 1820d) + i * (2.45d + frequency / 760d)));
                     double pedalLift = i >= 1 ? 1d + pedalMix * 0.52d : 1d;
-                    body += partialWeights[i] * harmonicChain * pedalLift * Math.Sin(partialPhases[i]);
+                    body += partialWeights[i] * harmonicDecay * pedalLift * Math.Sin(partialPhases[i]);
                     partialPhases[i] += partialSteps[i];
                 }
 
