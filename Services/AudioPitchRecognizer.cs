@@ -2437,161 +2437,174 @@ namespace MusicBox.Services
             return p;
         }
 
+        private static (double Freq, double Score) EstimatePitchNormalizedDifference(float[] samples, int start, int length, int sampleRate, double minFreq, double maxFreq)
+        {
+            int minTau = (int)Math.Floor(sampleRate / maxFreq);
+            int maxTau = (int)Math.Ceiling(sampleRate / minFreq);
+            if (maxTau >= length / 2) maxTau = length / 2 - 1;
+            if (minTau < 2 || maxTau <= minTau) return (0d, 0d);
+
+            var diff = new double[maxTau + 1];
+            for (int tau = 1; tau <= maxTau; tau++)
+            {
+                double d = 0d;
+                for (int i = 0; i < length / 2; i++)
+                {
+                    double val = samples[start + i] - samples[start + i + tau];
+                    d += val * val;
+                }
+                diff[tau] = d;
+            }
+
+            var cmndf = new double[maxTau + 1];
+            cmndf[0] = 1d;
+            double runningSum = 0d;
+            for (int tau = 1; tau <= maxTau; tau++)
+            {
+                runningSum += diff[tau];
+                cmndf[tau] = diff[tau] / (runningSum / tau);
+            }
+
+            int bestTau = -1;
+            double threshold = 0.14d;
+            for (int tau = minTau; tau <= maxTau; tau++)
+            {
+                if (cmndf[tau] < threshold)
+                {
+                    bestTau = tau;
+                    while (bestTau + 1 <= maxTau && cmndf[bestTau + 1] < cmndf[bestTau])
+                    {
+                        bestTau++;
+                    }
+                    break;
+                }
+            }
+
+            if (bestTau < 0)
+            {
+                double minVal = double.MaxValue;
+                for (int tau = minTau; tau <= maxTau; tau++)
+                {
+                    if (cmndf[tau] < minVal)
+                    {
+                        minVal = cmndf[tau];
+                        bestTau = tau;
+                    }
+                }
+            }
+
+            if (bestTau < minTau || bestTau > maxTau) return (0d, 0d);
+
+            double x1 = cmndf[bestTau - 1];
+            double x2 = cmndf[bestTau];
+            double x3 = cmndf[bestTau + 1];
+            double denom = x3 + x1 - 2d * x2;
+            double refinedTau = Math.Abs(denom) < 1e-6d ? bestTau : bestTau + (x1 - x3) / (2d * denom);
+            double freq = sampleRate / refinedTau;
+            double score = Math.Clamp(1d - cmndf[bestTau], 0d, 1d);
+            return (freq, score);
+        }
+
+        private static (double Freq, double Score) EstimatePitchAutocorrelation(float[] samples, int start, int length, int sampleRate, double minFreq, double maxFreq)
+        {
+            int minTau = (int)Math.Floor(sampleRate / maxFreq);
+            int maxTau = (int)Math.Ceiling(sampleRate / minFreq);
+            if (maxTau >= length / 2) maxTau = length / 2 - 1;
+            if (minTau < 2 || maxTau <= minTau) return (0d, 0d);
+
+            double energy = 0d;
+            for (int i = 0; i < length / 2; i++) energy += samples[start + i] * samples[start + i];
+            if (energy < 1e-7d) return (0d, 0d);
+
+            int bestTau = -1;
+            double maxCorr = -1d;
+            for (int tau = minTau; tau <= maxTau; tau++)
+            {
+                double corr = 0d;
+                for (int i = 0; i < length / 2; i++)
+                {
+                    corr += samples[start + i] * samples[start + i + tau];
+                }
+                double normalized = corr / energy;
+                if (normalized > maxCorr)
+                {
+                    maxCorr = normalized;
+                    bestTau = tau;
+                }
+            }
+
+            if (bestTau < 0 || maxCorr < 0.25d) return (0d, 0d);
+            return (sampleRate / (double)bestTau, Math.Clamp(maxCorr, 0d, 1d));
+        }
+
         private static double ComputeRms(float[] samples, int start, int length)
         {
+            if (length <= 0) return 0d;
             double sum = 0d;
-            int end = Math.Min(start + length, samples.Length);
-            int count = end - start;
-            if (count <= 0) return 0d;
-            for (int i = start; i < end; i++)
-            {
-                sum += samples[i] * samples[i];
-            }
-            return Math.Sqrt(sum / count);
+            for (int i = 0; i < length; i++) sum += samples[start + i] * samples[start + i];
+            return Math.Sqrt(sum / length);
         }
 
         private static double ComputeZeroCrossingRate(float[] samples, int start, int length)
         {
-            int crossings = 0;
-            int end = Math.Min(start + length, samples.Length);
-            int count = end - start;
-            if (count <= 1) return 0d;
-            for (int i = start + 1; i < end; i++)
+            if (length <= 1) return 0d;
+            int count = 0;
+            for (int i = 1; i < length; i++)
             {
-                if ((samples[i - 1] > 0 && samples[i] <= 0) || (samples[i - 1] < 0 && samples[i] >= 0))
-                {
-                    crossings++;
-                }
+                if ((samples[start + i - 1] > 0 && samples[start + i] <= 0) || (samples[start + i - 1] < 0 && samples[start + i] >= 0))
+                    count++;
             }
-            return crossings / (double)(count - 1);
-        }
-
-        private static (double Frequency, double Score) EstimatePitchAutocorrelation(float[] samples, int start, int length, int sampleRate, double minFreq, double maxFreq)
-        {
-            int maxLag = (int)Math.Ceiling(sampleRate / minFreq);
-            int minLag = (int)Math.Floor(sampleRate / maxFreq);
-            if (maxLag >= length) maxLag = length - 1;
-            if (minLag < 2) minLag = 2;
-            if (minLag >= maxLag) return (0d, 0d);
-
-            double[] ac = new double[maxLag + 1];
-            for (int lag = minLag; lag <= maxLag; lag++)
-            {
-                double sum = 0d;
-                for (int i = start; i < start + length - lag; i++)
-                {
-                    sum += samples[i] * samples[i + lag];
-                }
-                ac[lag] = sum / (length - lag);
-            }
-
-            double maxVal = 0d;
-            int bestLag = -1;
-            for (int lag = minLag; lag <= maxLag; lag++)
-            {
-                if (ac[lag] > maxVal)
-                {
-                    maxVal = ac[lag];
-                    bestLag = lag;
-                }
-            }
-
-            if (bestLag < 0) return (0d, 0d);
-            double freq = sampleRate / (double)bestLag;
-            double energy = ComputeRms(samples, start, length);
-            double score = energy > 1e-6 ? maxVal / (energy * energy) : 0d;
-            return (freq, score);
-        }
-
-        private static (double Frequency, double Score) EstimatePitchNormalizedDifference(float[] samples, int start, int length, int sampleRate, double minFreq, double maxFreq)
-        {
-            int maxLag = (int)Math.Ceiling(sampleRate / minFreq);
-            int minLag = (int)Math.Floor(sampleRate / maxFreq);
-            if (maxLag >= length / 2) maxLag = (length / 2) - 1;
-            if (minLag < 2) minLag = 2;
-            if (minLag >= maxLag) return (0d, 0d);
-
-            double[] diff = new double[maxLag + 1];
-            for (int lag = 0; lag <= maxLag; lag++)
-            {
-                double sum = 0d;
-                for (int i = start; i < start + length / 2; i++)
-                {
-                    double d = samples[i] - samples[i + lag];
-                    sum += d * d;
-                }
-                diff[lag] = sum;
-            }
-
-            double[] cmndf = new double[maxLag + 1];
-            cmndf[0] = 1d;
-            double runningSum = 0d;
-            for (int lag = 1; lag <= maxLag; lag++)
-            {
-                runningSum += diff[lag];
-                cmndf[lag] = diff[lag] / (runningSum / lag);
-            }
-
-            int bestLag = -1;
-            double minVal = 2d;
-            for (int lag = minLag; lag <= maxLag; lag++)
-            {
-                if (cmndf[lag] < 0.15d)
-                {
-                    bestLag = lag;
-                    break;
-                }
-                if (cmndf[lag] < minVal)
-                {
-                    minVal = cmndf[lag];
-                    bestLag = lag;
-                }
-            }
-
-            if (bestLag < 0) return (0d, 0d);
-            double freq = sampleRate / (double)bestLag;
-            double score = 1d - Math.Clamp(cmndf[bestLag], 0d, 1d);
-            return (freq, score);
+            return count / (double)(length - 1);
         }
 
         private static (float[] Samples, int SampleRate) ReadMonoSamples(string path)
         {
             using var reader = new AudioFileReader(path);
-            var samples = new float[reader.Length / (reader.WaveFormat.BitsPerSample / 8)];
-            int read = reader.Read(samples, 0, samples.Length);
+            int sampleCount = (int)reader.Length / (reader.WaveFormat.BitsPerSample / 8);
+            var samples = new float[sampleCount];
+            int read = reader.Read(samples, 0, sampleCount);
             if (reader.WaveFormat.Channels == 1) return (samples.Take(read).ToArray(), reader.WaveFormat.SampleRate);
-            
+
             var mono = new float[read / reader.WaveFormat.Channels];
             for (int i = 0; i < mono.Length; i++)
             {
                 float sum = 0f;
-                for (int c = 0; i * reader.WaveFormat.Channels + c < read && c < reader.WaveFormat.Channels; c++)
-                {
-                    sum += samples[i * reader.WaveFormat.Channels + c];
-                }
+                for (int c = 0; c < reader.WaveFormat.Channels; c++) sum += samples[i * reader.WaveFormat.Channels + c];
                 mono[i] = sum / reader.WaveFormat.Channels;
             }
             return (mono, reader.WaveFormat.SampleRate);
         }
 
-        private static float[] PreprocessSamples(float[] raw, int sampleRate)
+        private static float[] PreprocessSamples(float[] samples, int sampleRate)
         {
-            return raw;
+            if (samples.Length == 0) return samples;
+            var output = new float[samples.Length];
+            float alpha = 0.96f;
+            output[0] = samples[0];
+            for (int i = 1; i < samples.Length; i++) output[i] = samples[i] - alpha * samples[i - 1];
+            return output;
         }
 
-        private static double MidiToFrequency(int midi)
+        private static int StabilizeOctaveJump(int currentMidi, int? previousMidi)
         {
-            return 440d * Math.Pow(2d, (midi - 69) / 12d);
+            if (!previousMidi.HasValue) return currentMidi;
+            int diff = currentMidi - previousMidi.Value;
+            if (Math.Abs(diff) == 12 || Math.Abs(diff) == 24) return previousMidi.Value;
+            return currentMidi;
         }
 
-        private static int StabilizeOctaveJump(int current, int? previous)
+        private static double MidiToFrequency(int midi) => 440d * Math.Pow(2d, (midi - 69) / 12d);
+    }
+
+    internal static class PitchUtils
+    {
+        public static double FrequencyToMidi(double freq) => 69d + 12d * Math.Log2(freq / 440d);
+        public static (int Midi, int Cents) FrequencyToMidiWithCents(double freq)
         {
-            if (!previous.HasValue) return current;
-            int diff = current - previous.Value;
-            if (Math.Abs(diff) <= 6) return current;
-            if (Math.Abs(diff - 12) <= 2) return current - 12;
-            if (Math.Abs(diff + 12) <= 2) return current + 12;
-            return current;
+            double raw = FrequencyToMidi(freq);
+            int midi = (int)Math.Round(raw);
+            int cents = (int)Math.Round((raw - midi) * 100d);
+            return (midi, cents);
         }
     }
 }
